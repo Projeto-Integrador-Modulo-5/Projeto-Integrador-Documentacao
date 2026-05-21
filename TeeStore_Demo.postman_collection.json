@@ -1,0 +1,352 @@
+{
+  "info": {
+    "name": "TeeStore – Demo Apresentação",
+    "_postman_id": "teestore-demo-v1",
+    "description": "Collection para demonstração do projeto em sala.\n\n**Ordem de uso:**\n1. Execute '🔑 Login Admin' → token salvo automaticamente\n2. Execute '🔑 Login Cliente (Ana)' → token salvo automaticamente\n3. Explore os pedidos, troque status e observe o Kafka agindo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:8080",  "type": "string" },
+    { "key": "adminToken",   "value": "",                       "type": "string" },
+    { "key": "clienteToken", "value": "",                       "type": "string" },
+    { "key": "orderId",      "value": "33333333-0000-0000-0000-000000000005", "type": "string",
+      "description": "Pedido da Beatriz (PROCESSING) — ideal para demo ao vivo" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "🔑 Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('adminToken', json.token);",
+                  "pm.test('Login admin OK', () => pm.response.to.have.status(200));",
+                  "console.log('Admin token salvo:', json.token.substring(0,30) + '...');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sysadmin@admin.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Faz login como admin e salva o token na variável `adminToken`"
+          }
+        },
+        {
+          "name": "🔑 Login Cliente – Ana Costa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('clienteToken', json.token);",
+                  "pm.test('Login cliente OK', () => pm.response.to.have.status(200));",
+                  "console.log('Cliente token salvo:', json.token.substring(0,30) + '...');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana.costa@email.com\",\n  \"password\": \"cliente123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Ana tem 2 pedidos: um PROCESSING e um SHIPPED"
+          }
+        },
+        {
+          "name": "🔑 Login Cliente – Carlos Lima",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('clienteToken', json.token);",
+                  "pm.test('Login cliente OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"carlos.lima@email.com\",\n  \"password\": \"maria123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Carlos tem 1 pedido PROCESSING e 1 DELIVERED"
+          }
+        },
+        {
+          "name": "🔑 Login Cliente – Beatriz Souza",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('clienteToken', json.token);",
+                  "pm.test('Login cliente OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"beatriz.souza@email.com\",\n  \"password\": \"joao123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Beatriz tem o pedido mais recente (30 min atrás) — melhor para demo ao vivo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Admin – Pedidos",
+      "item": [
+        {
+          "name": "Listar todos os pedidos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?page=0&size=20",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Retorna todos os pedidos paginados. Copie um `id` para usar nas próximas requisições."
+          }
+        },
+        {
+          "name": "Filtrar pedidos – PROCESSING",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?status=PROCESSING&page=0&size=20",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders"],
+              "query": [
+                { "key": "status", "value": "PROCESSING" },
+                { "key": "page",   "value": "0" },
+                { "key": "size",   "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtrar pedidos – SHIPPED",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?status=SHIPPED&page=0&size=20",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders"],
+              "query": [
+                { "key": "status", "value": "SHIPPED" },
+                { "key": "page",   "value": "0" },
+                { "key": "size",   "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "🚚 [DEMO] PROCESSING → SHIPPED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHIPPED\",\n  \"trackingCode\": \"BR{{$randomInt}}SP\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "⭐ PASSO PRINCIPAL DA DEMO\n\nMuda o status para SHIPPED e gera um código de rastreio.\nAo executar:\n1. O backend publica evento no Kafka\n2. O serviço de logística consome o evento\n3. O serviço de notificação cria uma notificação para o cliente\n\nDepois execute 'Ver notificações do cliente' para provar que chegou."
+          }
+        },
+        {
+          "name": "✅ [DEMO] SHIPPED → DELIVERED",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DELIVERED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders", "{{orderId}}", "status"]
+            },
+            "description": "Segundo passo da demo: entrega confirmada.\nNova notificação é criada via Kafka."
+          }
+        },
+        {
+          "name": "❌ [DEMO] Cancelar pedido",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"], "path": ["admin", "orders", "{{orderId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Dashboard (métricas)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard",
+              "host": ["{{baseUrl}}"], "path": ["admin", "dashboard"]
+            },
+            "description": "Retorna contagens por status. Mostre antes e depois de mudar um pedido para provar que o contador atualiza."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Cliente – Pedidos e Notificações",
+      "item": [
+        {
+          "name": "Ver meus pedidos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"], "path": ["orders"]
+            },
+            "description": "Execute depois de trocar o status para mostrar que o cliente vê a atualização."
+          }
+        },
+        {
+          "name": "🔔 Ver notificações do cliente",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"], "path": ["notifications"]
+            },
+            "description": "⭐ PROVA DO KAFKA\n\nExecute DEPOIS de mudar o status de um pedido.\nSe aparecer uma notificação nova aqui, o Kafka funcionou:\nbackend → Kafka → serviço de notificação → banco."
+          }
+        },
+        {
+          "name": "Marcar notificação como lida",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:id/read",
+              "host": ["{{baseUrl}}"], "path": ["notifications", ":id", "read"],
+              "variable": [{ "key": "id", "value": "", "description": "ID da notificação retornado na listagem" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛍️ Loja (endpoints públicos)",
+      "item": [
+        {
+          "name": "Listar produtos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?page=0&size=8",
+              "host": ["{{baseUrl}}"], "path": ["products"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "8" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalhe de produto",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/:id",
+              "host": ["{{baseUrl}}"], "path": ["products", ":id"],
+              "variable": [{ "key": "id", "value": "", "description": "UUID do produto" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛒 Carrinho (cliente)",
+      "item": [
+        {
+          "name": "Ver carrinho",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+          }
+        },
+        {
+          "name": "Adicionar item ao carrinho",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clienteToken}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"COLE_O_UUID_DO_PRODUTO_AQUI\",\n  \"size\": \"M\",\n  \"quantity\": 1\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cart/items", "host": ["{{baseUrl}}"], "path": ["cart", "items"] }
+          }
+        },
+        {
+          "name": "Limpar carrinho",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clienteToken}}" }],
+            "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+          }
+        }
+      ]
+    }
+  ]
+}
