@@ -137,6 +137,7 @@ O tópico `order.status.updated` é consumido por **dois consumer groups indepen
 - [x] CI/CD GitHub Actions com JaCoCo em todos os repositórios
 - [x] Interface React fiel ao protótipo (painel admin + loja + notificações)
 - [x] Documentação N2 e Pitch Técnico produzidos
+- [x] Link do figma: https://www.figma.com/design/AxVnryB56xm1pMk5mq6EJu/Projeto-integrador?node-id=0-1&t=33NG3hSTbIfcPA6X-1
 
 ---
 
